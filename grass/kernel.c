@@ -23,9 +23,23 @@ void excp_entry(int id) {
     /* Student's code goes here (system call and memory exception). */
 
     /* If id is for system call, handle the system call and return */
+    if((id == EXCP_ID_ECALL_U || id == EXCP_ID_ECALL_M) && curr_pid < GPID_SHELL) {
+        kernel_entry = proc_syscall;
 
+        int mepc;
+        asm("csrr %0, mepc" : "=r" (mepc));
+        mepc += 4;
+        asm("csrw mepc, %0" ::"r"(mepc));
+
+        return;
+    }
     /* Otherwise, kill the process if curr_pid is a user application */
-
+    if(curr_pid >= GPID_USER_START) {
+        INFO("user process %d is using syscall", curr_pid);
+        asm("csrw mepc, %0" ::"r"(0x800500C));
+        return;
+    }
+    
     /* Student's code ends here. */
     FATAL("excp_entry: kernel got exception %d", id);
 }

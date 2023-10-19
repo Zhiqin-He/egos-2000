@@ -16,8 +16,13 @@ static struct syscall *sc = (struct syscall*)SYSCALL_ARG;
 static void sys_invoke() {
     /* The standard way of system call is using the `ecall` instruction; 
      * Switching to ecall is given to students as an exercise */
-    *((int*)0x2000000) = 1;
-    while (sc->type != SYS_UNUSED);
+
+    /*
+    Previously, the loop was needed because interrupts are disabled when one is being handled. However, exceptions are
+    not disabled when one is being handled. Therefore, the loop is not needed.
+    */
+    asm("ecall");
+    // while (sc->type != SYS_UNUSED);
 }
 
 int sys_send(int receiver, char* msg, int size) {
